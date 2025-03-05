@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Kaarya</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+	<nav class="main-nav">
+		<div class="nav-container">
+			<div class="brand">Kaarya</div>
+			<div class="nav-links">
+				<a href="#" class="nav-link active" data-section="todo">Todo</a>
+				<a href="#" class="nav-link" data-section="pomodoro">Pomodoro</a>
+				<a href="#" class="nav-link" data-section="alarm">Alarm</a>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Todo List Section -->
+	<section id="todo" class="content-section active">
+		<div class="content-container">
+			<h1 class="section-title">Task Manager</h1>
+			<div class="input-group">
+				<input type="text" id="todo-input" placeholder="Add new task...">
+				<button id="add-btn" class="primary-btn">+ Add</button>
+			</div>
+			<ul id="todo-list"></ul>
+		</div>
+	</section>
+
+	<!-- Pomodoro Section -->
+	<section id="pomodoro" class="content-section">
+		<div class="content-container">
+			<h1 class="section-title">Timer</h1>
+			<div class="timer-display">25:00</div>
+			<div class="timer-controls">
+				<button id="start-pomo" class="primary-btn">Start</button>
+				<button id="reset-pomo" class="secondary-btn">Reset</button>
+			</div>
+		</div>
+	</section>
+
+	<!-- Alarm Section -->
+	<section id="alarm" class="content-section">
+		<div class="content-container">
+			<h1 class="section-title">Alarm Clock</h1>
+			<div class="alarm-input">
+				<div class="time-input-group">
+					<div class="time-selectors">
+						<div class="time-field">
+							<label>Hour</label>
+							<select id="alarm-hour" class="hour-select">
+								<option value="">HH</option>
+								<!-- Hours will be populated by JavaScript -->
+							</select>
+						</div>
+						<div class="time-field">
+							<label>Minute</label>
+							<select id="alarm-minute" class="minute-select">
+								<option value="">MM</option>
+								<!-- Minutes will be populated by JavaScript -->
+							</select>
+						</div>
+						<div class="time-field">
+							<label>AM/PM</label>
+							<select id="alarm-period" class="period-select">
+								<option value="AM">AM</option>
+								<option value="PM">PM</option>
+							</select>
+						</div>
+					</div>
+					<div class="alarm-controls">
+						<button id="set-alarm" class="primary-btn">Set Alarm</button>
+						<button id="clear-alarm" class="secondary-btn">Clear</button>
+					</div>
+				</div>
+				<div class="time-preview"></div>
+			</div>
+			<ul id="alarms-list"></ul>
+		</div>
+	</section>
+	<script src="app.js"></script>
+	<script src="todo.js"></script>
+	<script src="pomodoro.js"></script>
+	<script src="alarm.js"></script>
+</body>
+
+</html>
