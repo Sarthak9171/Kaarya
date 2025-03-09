@@ -1,10 +1,9 @@
 class AlarmClock {
     constructor() {
         this.alarms = JSON.parse(localStorage.getItem('alarms')) || [];
+        this.alarmSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        this.alarmSound.loop = true;
         this.init();
-        this.populateTimeSelectors();
-        this.startTimeUpdates();
-        this.render();
     }
 
     init() {
@@ -14,6 +13,10 @@ class AlarmClock {
         this.periodSelect = document.getElementById('alarm-period');
         this.timePreview = document.querySelector('.time-preview');
         
+        // Populate time options
+        this.populateHours();
+        this.populateMinutes();
+        
         // Add event listeners
         document.getElementById('set-alarm').addEventListener('click', () => this.setAlarm());
         document.getElementById('clear-alarm').addEventListener('click', () => this.clearInput());
@@ -22,18 +25,24 @@ class AlarmClock {
         [this.hourSelect, this.minuteSelect, this.periodSelect].forEach(select => {
             select.addEventListener('change', () => this.updateTimePreview());
         });
+
+        // Start checking alarms
+        this.startAlarmChecker();
+        
+        // Render existing alarms
+        this.render();
     }
 
-    populateTimeSelectors() {
-        // Populate hours
+    populateHours() {
         for (let i = 1; i <= 12; i++) {
             const option = document.createElement('option');
             option.value = i;
             option.textContent = i.toString().padStart(2, '0');
             this.hourSelect.appendChild(option);
         }
-        
-        // Populate minutes
+    }
+
+    populateMinutes() {
         for (let i = 0; i < 60; i++) {
             const option = document.createElement('option');
             option.value = i;
@@ -61,8 +70,23 @@ class AlarmClock {
         const period = this.periodSelect.value;
         
         if (!hour || isNaN(minute)) {
-            alert('Please select a valid time');
+            this.showError('Please select a valid time');
             return;
+        }
+
+        const now = new Date();
+        let alarmTime = new Date();
+        
+        // Set alarm time
+        let alarmHour = hour;
+        if (period === 'PM' && hour !== 12) alarmHour += 12;
+        if (period === 'AM' && hour === 12) alarmHour = 0;
+        
+        alarmTime.setHours(alarmHour, minute, 0, 0);
+        
+        // If alarm time is in the past, set it for next day
+        if (alarmTime < now) {
+            alarmTime.setDate(alarmTime.getDate() + 1);
         }
         
         const alarm = {
@@ -70,6 +94,7 @@ class AlarmClock {
             hour,
             minute,
             period,
+            timestamp: alarmTime.getTime(),
             enabled: true
         };
         
@@ -77,6 +102,8 @@ class AlarmClock {
         this.saveAlarms();
         this.clearInput();
         this.render();
+        
+        this.showSuccess('Alarm set successfully!');
     }
 
     clearInput() {
@@ -105,38 +132,64 @@ class AlarmClock {
         localStorage.setItem('alarms', JSON.stringify(this.alarms));
     }
 
-    startTimeUpdates() {
+    startAlarmChecker() {
         setInterval(() => {
             const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
             
             this.alarms.forEach(alarm => {
                 if (!alarm.enabled) return;
                 
-                let alarmHour = alarm.hour;
-                if (alarm.period === 'PM' && alarmHour !== 12) {
-                    alarmHour += 12;
-                } else if (alarm.period === 'AM' && alarmHour === 12) {
-                    alarmHour = 0;
-                }
+                const alarmTime = new Date(alarm.timestamp);
                 
-                if (currentHour === alarmHour && currentMinute === alarm.minute) {
+                // Check if alarm should trigger
+                if (now >= alarmTime) {
                     this.triggerAlarm(alarm);
+                    
+                    // Set next day's alarm
+                    alarm.timestamp = new Date(alarmTime.setDate(alarmTime.getDate() + 1)).getTime();
                 }
             });
+            
+            this.saveAlarms();
         }, 1000);
     }
 
     triggerAlarm(alarm) {
-        const notification = new Notification('Alarm!', {
-            body: `It's ${alarm.hour}:${alarm.minute.toString().padStart(2, '0')} ${alarm.period}`,
-            icon: '/alarm-icon.png'
-        });
+        // Show notification
+        if (Notification.permission === 'granted') {
+            new Notification('Alarm!', {
+                body: `It's ${alarm.hour}:${alarm.minute.toString().padStart(2, '0')} ${alarm.period}`,
+                icon: '/alarm-icon.png'
+            });
+        }
         
         // Play sound
-        const audio = new Audio('/alarm-sound.mp3');
-        audio.play();
+        this.alarmSound.play();
+        
+        // Show alert with stop button
+        const stopAlarm = confirm('Alarm! Click OK to stop the alarm.');
+        if (stopAlarm) {
+            this.alarmSound.pause();
+            this.alarmSound.currentTime = 0;
+        }
+    }
+
+    showError(message) {
+        this.timePreview.textContent = message;
+        this.timePreview.style.color = 'var(--danger)';
+        setTimeout(() => {
+            this.timePreview.style.color = 'var(--text-secondary)';
+            this.updateTimePreview();
+        }, 3000);
+    }
+
+    showSuccess(message) {
+        this.timePreview.textContent = message;
+        this.timePreview.style.color = 'var(--success)';
+        setTimeout(() => {
+            this.timePreview.style.color = 'var(--text-secondary)';
+            this.timePreview.textContent = '';
+        }, 3000);
     }
 
     render() {
@@ -152,17 +205,22 @@ class AlarmClock {
             return;
         }
         
-        this.alarms.forEach(alarm => {
+        this.alarms.sort((a, b) => a.timestamp - b.timestamp).forEach(alarm => {
             const li = document.createElement('li');
             li.className = 'alarm-item';
+            
+            const alarmTime = new Date(alarm.timestamp);
+            const timeString = alarmTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
             
             li.innerHTML = `
                 <div class="alarm-content">
                     <div class="alarm-time">
-                        <div class="time-display">
-                            ${alarm.hour.toString().padStart(2, '0')}:${alarm.minute.toString().padStart(2, '0')}
-                        </div>
-                        <div class="time-period">${alarm.period}</div>
+                        <div class="time-display">${timeString}</div>
+                        <div class="time-period">Next: ${alarmTime.toLocaleDateString()}</div>
                     </div>
                 </div>
                 <div class="alarm-controls">

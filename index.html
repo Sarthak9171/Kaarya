@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Kaarya</title>
 	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
 </head>
 
 <body>
 	<nav class="main-nav">
 		<div class="nav-container">
 			<div class="brand">Kaarya</div>
-			<div class="nav-links">
-				<a href="#" class="nav-link active" data-section="todo">Todo</a>
-				<a href="#" class="nav-link" data-section="pomodoro">Pomodoro</a>
-				<a href="#" class="nav-link" data-section="alarm">Alarm</a>
+			<div class="nav-right">
+				<div class="nav-links">
+					<a href="#" class="nav-link active" data-section="todo">Todo</a>
+					<a href="#" class="nav-link" data-section="pomodoro">Pomodoro</a>
+					<a href="#" class="nav-link" data-section="alarm">Alarm</a>
+				</div>
+				<button class="theme-toggle" id="theme-toggle">
+					<span class="material-icons-round">light_mode</span>
+				</button>
 			</div>
 		</div>
 	</nav>
@@ -36,23 +42,28 @@
 	<section id="pomodoro" class="content-section">
 		<div class="content-container">
 			<div class="timer-container">
-				<h1>Timer</h1>
-				<div class="timer-display">00:08</div>
-				<div class="timer-mode">Work Time</div>
+				<div class="timer-header">
+					<div class="mode-tabs">
+						<button class="mode-tab active" data-mode="work">Focus</button>
+						<button class="mode-tab" data-mode="break">Break</button>
+					</div>
+				</div>
+				<div class="timer-display">00:00</div>
 				<div class="timer-controls">
-					<button id="start-pomo">Pause</button>
-					<button id="reset-pomo">Reset</button>
+					<button id="start-pomo" class="control-btn">Start</button>
+					<button id="reset-pomo" class="control-btn">Reset</button>
 				</div>
 				<div class="timer-settings">
 					<div class="setting-group">
-						<label>Work Time (minutes):</label>
-						<input type="number" id="work-time" value="1" min="1" max="60">
+						<div class="setting-input">
+							<input type="number" id="work-time" value="25" min="1" max="60">
+							<label>min focus</label>
+						</div>
+						<div class="setting-input">
+							<input type="number" id="break-time" value="5" min="1" max="30">
+							<label>min break</label>
+						</div>
 					</div>
-					<div class="setting-group">
-						<label>Break Time (minutes):</label>
-						<input type="number" id="break-time" value="5" min="1" max="30">
-					</div>
-					<button id="settings-save" class="settings-btn">Save Settings</button>
 				</div>
 			</div>
 		</div>

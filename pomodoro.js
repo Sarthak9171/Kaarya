@@ -1,6 +1,6 @@
 class PomodoroTimer {
     constructor() {
-        this.defaultWorkTime = 1 * 60; // 1 minute in seconds
+        this.defaultWorkTime = 25 * 60; // 25 minutes in seconds
         this.defaultBreakTime = 5 * 60; // 5 minutes in seconds
         this.workTime = this.defaultWorkTime;
         this.breakTime = this.defaultBreakTime;
@@ -18,15 +18,61 @@ class PomodoroTimer {
 
     init() {
         this.display = document.querySelector('.timer-display');
+        
+        // Initialize controls
         document.getElementById('start-pomo').addEventListener('click', () => this.toggleTimer());
         document.getElementById('reset-pomo').addEventListener('click', () => this.resetTimer());
-        document.getElementById('settings-save').addEventListener('click', () => this.saveSettings());
         
-        // Initialize settings inputs
-        document.getElementById('work-time').value = this.defaultWorkTime / 60;
-        document.getElementById('break-time').value = this.defaultBreakTime / 60;
+        // Initialize mode tabs
+        const modeTabs = document.querySelectorAll('.mode-tab');
+        modeTabs.forEach(tab => {
+            tab.addEventListener('click', () => this.handleModeChange(tab.dataset.mode));
+        });
+        
+        // Initialize settings
+        const workTimeInput = document.getElementById('work-time');
+        const breakTimeInput = document.getElementById('break-time');
+        
+        workTimeInput.addEventListener('change', () => this.handleSettingChange());
+        breakTimeInput.addEventListener('change', () => this.handleSettingChange());
+        
+        // Set initial values
+        workTimeInput.value = this.defaultWorkTime / 60;
+        breakTimeInput.value = this.defaultBreakTime / 60;
         
         this.updateDisplay();
+    }
+
+    handleModeChange(mode) {
+        if (this.isRunning) {
+            if (!confirm('Timer is running. Switch modes?')) return;
+            this.pauseTimer();
+        }
+        
+        this.isWorking = mode === 'work';
+        this.timeLeft = this.isWorking ? this.workTime : this.breakTime;
+        
+        // Update UI
+        document.querySelectorAll('.mode-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.mode === mode);
+        });
+        
+        this.updateDisplay();
+    }
+
+    handleSettingChange() {
+        const newWorkTime = parseInt(document.getElementById('work-time').value);
+        const newBreakTime = parseInt(document.getElementById('break-time').value);
+        
+        if (newWorkTime && newBreakTime) {
+            this.workTime = newWorkTime * 60;
+            this.breakTime = newBreakTime * 60;
+            
+            if (!this.isRunning) {
+                this.timeLeft = this.isWorking ? this.workTime : this.breakTime;
+                this.updateDisplay();
+            }
+        }
     }
 
     toggleTimer() {
@@ -54,14 +100,13 @@ class PomodoroTimer {
     pauseTimer() {
         this.isRunning = false;
         clearInterval(this.timer);
-        document.getElementById('start-pomo').textContent = 'Resume';
+        document.getElementById('start-pomo').textContent = 'Start';
     }
 
     resetTimer() {
         clearInterval(this.timer);
         this.isRunning = false;
-        this.isWorking = true;
-        this.timeLeft = this.workTime;
+        this.timeLeft = this.isWorking ? this.workTime : this.breakTime;
         document.getElementById('start-pomo').textContent = 'Start';
         this.updateDisplay();
     }
@@ -71,10 +116,13 @@ class PomodoroTimer {
         this.isWorking = !this.isWorking;
         this.timeLeft = this.isWorking ? this.workTime : this.breakTime;
         
-        // Play sound when timer finishes
-        this.playTimerSound();
+        // Update mode tabs
+        document.querySelectorAll('.mode-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.mode === (this.isWorking ? 'work' : 'break'));
+        });
         
-        // Show notification when switching modes
+        // Play sound and show notification
+        this.playTimerSound();
         const message = this.isWorking ? 'Work Time!' : 'Break Time!';
         this.showNotification(message);
         
@@ -82,7 +130,6 @@ class PomodoroTimer {
     }
 
     playTimerSound() {
-        // Reset the audio to start and play
         this.timerSound.currentTime = 0;
         this.timerSound.play().catch(error => {
             console.log('Audio play failed:', error);
@@ -101,29 +148,11 @@ class PomodoroTimer {
         }
     }
 
-    saveSettings() {
-        const newWorkTime = parseInt(document.getElementById('work-time').value);
-        const newBreakTime = parseInt(document.getElementById('break-time').value);
-        
-        if (newWorkTime && newBreakTime) {
-            this.workTime = newWorkTime * 60;
-            this.breakTime = newBreakTime * 60;
-            this.resetTimer();
-            alert('Settings saved successfully!');
-        } else {
-            alert('Please enter valid times');
-        }
-    }
-
     updateDisplay() {
         const minutes = Math.floor(this.timeLeft / 60);
         const seconds = this.timeLeft % 60;
         this.display.textContent = 
             `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
-        // Update mode display
-        const modeText = this.isWorking ? 'Work Time' : 'Break Time';
-        document.querySelector('.timer-mode').textContent = modeText;
     }
 }
 
