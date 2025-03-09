@@ -1,19 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Navigation logic
-    const sections = document.querySelectorAll('.content-section');
+    // Navigation handling
     const navLinks = document.querySelectorAll('.nav-link');
-    
+    const sections = document.querySelectorAll('.content-section');
+
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // Remove active classes
-            navLinks.forEach(nav => nav.classList.remove('active'));
-            sections.forEach(section => section.classList.remove('active'));
+            // Remove active class from all links and sections
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
             
-            // Add active classes
+            // Add active class to clicked link and corresponding section
             link.classList.add('active');
-            document.getElementById(link.dataset.section).classList.add('active');
+            const sectionId = link.getAttribute('data-section');
+            document.getElementById(sectionId).classList.add('active');
         });
     });
 });

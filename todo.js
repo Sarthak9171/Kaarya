@@ -1,66 +1,90 @@
 class TodoList {
     constructor() {
         this.todos = JSON.parse(localStorage.getItem('todos')) || [];
+        this.todoInput = document.getElementById('todo-input');
+        this.todoList = document.getElementById('todo-list');
+        this.addButton = document.getElementById('add-btn');
+        
         this.init();
+        this.render();
     }
 
     init() {
-        this.render();
-        document.getElementById('add-btn').addEventListener('click', () => this.addTodo());
-        document.getElementById('todo-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addTodo();
+        // Add todo on button click
+        this.addButton.addEventListener('click', () => this.addTodo());
+        
+        // Add todo on Enter key
+        this.todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.addTodo();
+            }
         });
     }
 
     addTodo() {
-        const input = document.getElementById('todo-input');
-        const text = input.value.trim();
+        const text = this.todoInput.value.trim();
         if (text) {
-            this.todos.push({ text, completed: false });
-            input.value = '';
-            this.save();
+            this.todos.push({
+                id: Date.now(),
+                text: text,
+                completed: false
+            });
+            this.todoInput.value = '';
+            this.saveTodos();
             this.render();
         }
     }
 
-    render() {
-        const list = document.getElementById('todo-list');
-        list.innerHTML = this.todos.length > 0 ? 
-            this.todos.map((todo, index) => `
-                <li class="todo-item">
-                    <input type="checkbox" ${todo.completed ? 'checked' : ''} 
-                        data-index="${index}" class="todo-check">
-                    <span style="${todo.completed ? 'text-decoration: line-through; opacity: 0.7' : ''}">
-                        ${todo.text}
-                    </span>
-                    <button data-index="${index}" class="delete-btn">×</button>
-                </li>
-            `).join('') : 
-            '<div class="empty-state">No tasks yet! Add your first task 🌟</div>';
-
-        document.querySelectorAll('.todo-check').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => this.toggleTodo(e.target.dataset.index));
-        });
-        
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', (e) => this.deleteTodo(e.target.dataset.index));
-        });
+    toggleTodo(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo) {
+            todo.completed = !todo.completed;
+            this.saveTodos();
+            this.render();
+        }
     }
 
-    toggleTodo(index) {
-        this.todos[index].completed = !this.todos[index].completed;
-        this.save();
+    deleteTodo(id) {
+        this.todos = this.todos.filter(t => t.id !== id);
+        this.saveTodos();
         this.render();
     }
 
-    deleteTodo(index) {
-        this.todos.splice(index, 1);
-        this.save();
-        this.render();
-    }
-
-    save() {
+    saveTodos() {
         localStorage.setItem('todos', JSON.stringify(this.todos));
+    }
+
+    render() {
+        this.todoList.innerHTML = '';
+        
+        if (this.todos.length === 0) {
+            this.todoList.innerHTML = `
+                <div class="empty-state">
+                    <p>No tasks yet! Add a new task to get started.</p>
+                </div>
+            `;
+            return;
+        }
+
+        this.todos.forEach(todo => {
+            const li = document.createElement('li');
+            li.className = 'todo-item';
+            
+            li.innerHTML = `
+                <input type="checkbox" ${todo.completed ? 'checked' : ''}>
+                <span style="${todo.completed ? 'text-decoration: line-through' : ''}">${todo.text}</span>
+                <button class="delete-btn">×</button>
+            `;
+            
+            // Add event listeners
+            const checkbox = li.querySelector('input');
+            checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
+            
+            const deleteBtn = li.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => this.deleteTodo(todo.id));
+            
+            this.todoList.appendChild(li);
+        });
     }
 }
 
