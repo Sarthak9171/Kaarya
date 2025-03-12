@@ -21,22 +21,45 @@ document.addEventListener('DOMContentLoaded', () => {
         themeIcon.textContent = theme === 'light' ? 'light_mode' : 'dark_mode';
     }
 
+    // Mobile Navigation Toggle
+    const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (mobileNavToggle && navLinks) {
+        mobileNavToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navLinks.contains(e.target) && !mobileNavToggle.contains(e.target)) {
+                navLinks.classList.remove('active');
+            }
+        });
+    }
+
     // Navigation handling
-    const navLinks = document.querySelectorAll('.nav-link');
+    const navLinksAll = document.querySelectorAll('.nav-link');
     const sections = document.querySelectorAll('.content-section');
 
-    navLinks.forEach(link => {
+    navLinksAll.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             
             // Remove active class from all links and sections
-            navLinks.forEach(l => l.classList.remove('active'));
+            navLinksAll.forEach(l => l.classList.remove('active'));
             sections.forEach(s => s.classList.remove('active'));
             
             // Add active class to clicked link and corresponding section
             link.classList.add('active');
             const sectionId = link.getAttribute('data-section');
             document.getElementById(sectionId).classList.add('active');
+
+            // Close mobile menu after clicking a link
+            if (navLinks) {
+                navLinks.classList.remove('active');
+            }
         });
     });
 });
